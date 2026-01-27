@@ -1,0 +1,248 @@
+================================================================================
+HELLO ADMIN BACKEND - API DOCUMENTATION
+================================================================================
+
+This document provides a comprehensive reference for the Hello Admin backend APIs,
+including authentication flows, payment processing, and notification systems.
+
+Table of Contents:
+1. Global Configuration
+2. Authentication & Authorization Flow
+3. Payment Flow (Stripe)
+4. API Reference
+   - Auth Module
+   - User Module
+   - Stripe Module
+   - Notification Module
+
+================================================================================
+1. GLOBAL CONFIGURATION
+================================================================================
+
+- Base URL: /api/v1 (e.g., http://localhost:3000/api/v1)
+- Authentication: Bearer Token (JWT)
+  Header: `Authorization: Bearer <your_access_token>`
+- Global Roles: 'user', 'admin'
+
+================================================================================
+2. AUTHENTICATION & AUTHORIZATION FLOW
+================================================================================
+
+The backend uses JWT (JSON Web Tokens) for stateless authentication.
+
+[ FLOW DIAGRAM: LOGIN & PROTECTED ACCESS ]
+
++--------+                                  +----------+                +----------+
+| Client |                                  | Backend  |                | Database |
++--------+                                  +----------+                +----------+
+    |                                            |                           |
+    | 1. POST /auth/login (Phone/Pass)           |                           |
+    |------------------------------------------->|                           |
+    |                                            | 2. Validate Credentials   |
+    |                                            |-------------------------->|
+    |                                            |<--------------------------|
+    |                                            |                           |
+    | 3. Returns JWT Access Token                |                           |
+    |<-------------------------------------------|                           |
+    |                                            |                           |
+    |                                            |                           |
+    | 4. GET /user/profile (Header: Bearer JWT)  |                           |
+    |------------------------------------------->|                           |
+    |                                            | 5. Validate JWT Signature |
+    |                                            |    & Extract User ID      |
+    |                                            |-------------------------->|
+    |                                            |<--------------------------|
+    | 6. Returns User Data                       |                           |
+    |<-------------------------------------------|                           |
+    |                                            |                           |
+
+================================================================================
+3. PAYMENT FLOW (STRIPE)
+================================================================================
+
+We use Stripe Payment Elements. The specific flow avoids handling raw card info.
+
+[ FLOW DIAGRAM: PAYMENT INTENT ]
+
++--------+                                  +----------+                +----------+
+| Client |                                  | Backend  |                |  Stripe  |
++--------+                                  +----------+                +----------+
+    |                                            |                           |
+    | 1. POST /stripe/create-payment-intent      |                           |
+    |    (Amount, Currency)                      |                           |
+    |------------------------------------------->|                           |
+    |                                            | 2. Create PaymentIntent   |
+    |                                            |-------------------------->|
+    |                                            |<--------------------------|
+    | 3. Returns { clientSecret }                |                           |
+    |<-------------------------------------------|                           |
+    |                                            |                           |
+    | 4. Confirm Payment (using Stripe.js)       |                           |
+    |    Uses clientSecret                       |                           |
+    |----------------------------------------------------------------------->|
+    |                                            |                           |
+    |                                            | 5. Webhook (Async)        |
+    |                                            |    POST /stripe/webhook   |
+    |                                            |<--------------------------|
+    |                                            | 6. Verify Signature       |
+    |                                            |    & Update Order Status  |
+    |                                            |                           |
+
+================================================================================
+4. API REFERENCE
+================================================================================
+
+--------------------------------------------------------------------------------
+MODULE: AUTH
+Base Path: /auth
+--------------------------------------------------------------------------------
+
+1.  POST /auth/signup
+    Description: Register a new user account.
+    Auth Required: No
+    Body (JSON):
+    {
+      "firstName": "String (min 3 chars)",
+      "lastName": "String (min 3 chars)",
+      "email": "String (valid email)",
+      "password": "String (min 6 chars)",
+      "phone": "String",
+      "role": "Enum: 'user' | 'admin'"
+    }
+    Response: 201 Created
+
+2.  POST /auth/login
+    Description: Authenticate user and receive JWT.
+    Auth Required: No
+    Body (JSON):
+    {
+      "phone": "String",
+      "password": "String"
+    }
+    Response:
+    {
+      "access_token": "eyJhbG..."
+    }
+
+3.  POST /auth/verify-phone
+    Description: Verify phone number using OTP.
+    Auth Required: No
+    Body (JSON):
+    {
+      "phone": "String",
+      "otp": "String (4 digits)"
+    }
+
+4.  POST /auth/forgot-password
+    Description: Request a password reset OTP via SMS.
+    Auth Required: No
+    Body (JSON): { "phone": "String" }
+
+5.  POST /auth/reset-password
+    Description: Reset password using OTP.
+    Auth Required: No
+    Body (JSON):
+    {
+      "phone": "String",
+      "otp": "String (4 digits)",
+      "newPassword": "String"
+    }
+
+--------------------------------------------------------------------------------
+MODULE: USER
+Base Path: /user
+--------------------------------------------------------------------------------
+
+1.  GET /user/profile
+    Description: Get current logged-in user's profile.
+    Auth Required: Yes (JWT)
+    Response: User object (excluding password)
+
+2.  GET /user
+    Description: Get all users (Admin usually, currently public/protected).
+    Auth Required: Yes (JWT)
+
+3.  PATCH /user/:id
+    Description: Update user details.
+    Auth Required: Yes (JWT)
+    Body (JSON):
+    {
+      "firstName": "String (Optional)",
+      "lastName": "String (Optional)",
+      "email": "String (Optional)",
+      "isActive": "Boolean (Optional)"
+    }
+
+4.  GET /user/admin
+    Description: Fetch admin-only data.
+    Auth Required: Yes (JWT, Role: 'admin')
+
+--------------------------------------------------------------------------------
+MODULE: STRIPE
+Base Path: /stripe
+--------------------------------------------------------------------------------
+
+1.  POST /stripe/create-payment-intent
+    Description: Create a payment intent to start checkout flow.
+    Auth Required: Yes (JWT)
+    Body (JSON):
+    {
+      "amount": Number (in cents, min 50),
+      "currency": "String (e.g., 'usd')",
+      "description": "String (Optional)"
+    }
+    Response:
+    {
+      "clientSecret": "pi_123_secret_456"
+    }
+
+2.  POST /stripe/webhook
+    Description: Endpoint for Stripe to send events.
+    Auth Required: No (Public, Verified by Signature)
+    Headers: `stripe-signature`
+    Body: Raw Buffer (Handled by middleware)
+    Events Handled:
+      - payment_intent.succeeded
+      - payment_intent.payment_failed
+
+--------------------------------------------------------------------------------
+MODULE: NOTIFICATION
+Base Path: /notifications
+--------------------------------------------------------------------------------
+
+1.  GET /notifications/preferences/:userId
+    Description: Get marketing preferences for a user.
+    Auth Required: Yes (JWT)
+
+2.  PUT /notifications/preferences/:userId
+    Description: Update marketing preferences.
+    Auth Required: Yes (JWT)
+    Body (JSON):
+    {
+      "optedIn": Boolean,
+      "subscribedCategories": ["promotional", "newsletter"]
+    }
+
+3.  POST /notifications/marketing (Admin Only)
+    Description: Create a new marketing notification campaign.
+    Auth Required: Yes (JWT, Role: 'admin')
+    Body (JSON):
+    {
+      "title": "String",
+      "content": "String",
+      "category": "Enum: 'promotional'|'newsletter'|...",
+      "timing": "Enum: 'immediate'|'scheduled'"
+    }
+
+4.  POST /notifications/marketing/:id/send (Admin Only)
+    Description: Manually trigger sending of a marketing notification.
+    Auth Required: Yes (JWT, Role: 'admin')
+
+5.  PUT /notifications/marketing/:id/schedule (Admin Only)
+    Description: Schedule a marketing notification.
+    Auth Required: Yes (JWT, Role: 'admin')
+    Body (JSON): { "scheduledDate": "ISO8601 Date String" }
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================

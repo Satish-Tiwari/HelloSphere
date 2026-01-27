@@ -1,0 +1,134 @@
+Enable web push notifications using Firebase Cloud Messaging (FCM) for a Next.js web app with a NestJS backend.
+
+Next.js (Browser)
+ ├─ Service Worker
+ ├─ Firebase Messaging
+ └─ Notification Permission
+        ↓
+NestJS Backend
+ ├─ Store FCM Tokens
+ ├─ Business Events
+ └─ Firebase Admin SDK
+        ↓
+Firebase Cloud Messaging
+        ↓
+Browser OS Notification
+
+:-- when we send notification
+User registers
+Order placed
+Payment success
+Admin sends announcement
+
+
+:--Create Firebase project (one-time)
+Purpose: Firebase will act as the push delivery system.
+High-level:
+Create Firebase project
+Enable Cloud Messaging
+Generate service account (for backend)
+Get public config (for frontend)
+📌 One Firebase project works for Web + Mobile later.
+
+:--Prepare Next.js for Web Push
+Responsibility of Next.js (frontend):
+Ask user permission for notifications
+Register a Service Worker
+Connect browser to Firebase
+Generate FCM token
+
+User opens app
+ → Browser asks permission
+ → Service worker registers
+ → Firebase generates FCM token
+
+📌 This token uniquely identifies this browser.
+
+:--Send FCM token from Next.js → NestJS
+Once token is generated:
+Frontend sends:
+{ userId, fcmToken }
+POST /api/notifications/register-device
+{
+  fcmToken: "...",
+  platform: "web"
+}
+📌 This step connects user ↔ device ↔ browser.
+
+:--Store tokens in NestJS database
+Backend responsibility:
+Store token safely
+Associate with:
+userId
+browser
+timestamp
+Avoid duplicates
+Remove invalid tokens later
+User → multiple devices
+Device → one FCM token
+
+
+:--Initialize Firebase Admin SDK in NestJS
+Purpose:
+Allow NestJS to send messages to Firebase.
+High-level:
+Load service account credentials
+Initialize Firebase Admin
+Expose a notification service
+📌 Backend never talks directly to browsers.
+
+
+:--Create Notification Module in NestJS
+High-level module responsibilities:
+Send push notification
+Send to:
+Single user
+Multiple users
+Topic (future)
+Handle failures & cleanup
+Example triggers:
+OrderService → NotificationService
+AuthService → NotificationService
+
+:--Send push notification (event-driven)
+Business Event happens
+ → Notification Service called
+ → Firebase Admin sends payload
+ → Firebase delivers
+ → Browser shows notification
+📌 Backend controls what + when
+📌 Frontend controls how it looks
+
+:--Handle notification in Service Worker (Next.js)
+Service Worker:
+Receives message
+Displays notification
+Handles click actions (deep links)
+High-level:
+Notification received
+ → Show title + body
+ → On click → open page
+
+:--Combine with in-app notifications (recommended)
+Best practice:
+Save notifications in DB
+Show in-app notification panel
+Use WebSocket for live UI updates
+Use FCM for OS-level alerts
+This gives:
+✅ Real-time UI
+✅ Offline / background alerts
+
+:--Responsibility Split (VERY IMPORTANT)
+Next.js (Frontend)
+>>Ask permission
+>>Register service worker
+>>Get FCM token
+>>Show notification UI
+NestJS (Backend)
+>>Store tokens
+>>Decide when to notify
+>>Send push via Firebase
+>>Manage failures
+Firebase
+>>Deliver notifications reliably

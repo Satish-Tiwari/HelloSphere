@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/@vercel/microfrontends/schema/schema.json",
+  "applications": {
+    "frontend-dashboard": {
+      "development": {
+        "fallback": "dashboard-acme.vercel.app",
+        "local": 3000
+      },
+      "packageName": "@hello-sphere/dashboard"
+    },
+    "frontend-api": {
+      "routing": [
+        {
+          "paths": ["/api/:path*"]
+        }
+      ],
+      "packageName": "@hello-sphere/api",
+      "development": {
+        "local": 3001
+      }
+    }
+  }
+}
