@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const currentUrl = request.nextUrl;
   const authedUser = request.cookies.get("saas_microservices_authed_user");
-  if (!authedUser && request.nextUrl.pathname !== "/login") {
-    return NextResponse.redirect(new URL("/login", currentUrl));
+  console.log(`[Proxy] Processing: ${currentUrl.pathname}`);
+
+  if (request.nextUrl.pathname.startsWith("/api")) {
+    console.log(`[Proxy] Skipping API route: ${currentUrl.pathname}`);
+    return NextResponse.next();
+  }
+
+  if (!authedUser && request.nextUrl.pathname !== "/auth/login" && !request.nextUrl.pathname.startsWith("/auth")) {
+    console.log(`[Proxy] Redirecting unauth user to login`);
+    return NextResponse.redirect(new URL("/auth/login", currentUrl));
   }
 
   return NextResponse.next();

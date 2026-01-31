@@ -11,7 +11,7 @@
     "frontend-api": {
       "routing": [
         {
-          "paths": ["/api/:path*"]
+          "paths": ["/api/external/:path*"]
         }
       ],
       "packageName": "@hello-sphere/api",
