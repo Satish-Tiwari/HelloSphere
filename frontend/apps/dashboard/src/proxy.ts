@@ -1,8 +1,12 @@
+import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const currentUrl = request.nextUrl;
-  const authedUser = request.cookies.get("saas_microservices_authed_user");
+
+  // Check for NextAuth session token
+  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+
   console.log(`[Proxy] Processing: ${currentUrl.pathname}`);
 
   if (request.nextUrl.pathname.startsWith("/api")) {
@@ -10,7 +14,18 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!authedUser && request.nextUrl.pathname !== "/auth/login" && !request.nextUrl.pathname.startsWith("/auth")) {
+  // If user is authenticated and tries to access auth pages, redirect to dashboard
+  if (token && request.nextUrl.pathname.startsWith("/auth")) {
+    console.log(`[Proxy] Redirecting auth user to dashboard`);
+    return NextResponse.redirect(new URL("/", currentUrl));
+  }
+
+  // Allow access to auth pages (login, signup, etc.) if not authenticated
+  if (request.nextUrl.pathname.startsWith("/auth")) {
+    return NextResponse.next();
+  }
+
+  if (!token && request.nextUrl.pathname !== "/auth/login") {
     console.log(`[Proxy] Redirecting unauth user to login`);
     return NextResponse.redirect(new URL("/auth/login", currentUrl));
   }

@@ -21,27 +21,32 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 try {
-                    const data = await authService.login({
+                    // 1. Login to get access token
+                    const loginData = await authService.login({
                         email: credentials.email,
                         password: credentials.password,
-                    });
+                    }) as any;
 
-                    // Assuming backend returns { accessToken: "...", user: { ... } } or similar
-                    // Based on AuthController, it returns `return this.authService.logIn(loginUserDto);` 
-                    // which usually returns { access_token: string, user: ... } or just token. 
-                    // Let's assume standard object. I'll need to adapt based on actual response if different.
-                    // For now, mapping data to User. 
+                    if (loginData && loginData.access_token) {
+                        const accessToken = loginData.access_token;
 
-                    if (data && data.access_token) {
-                        const decoded: any = jwtDecode(data.access_token);
-                        return {
-                            id: decoded.id || decoded.sub || "unknown",
-                            name: `${decoded.firstName || ""} ${decoded.lastName || ""}`.trim() || decoded.email || undefined,
-                            email: decoded.email || undefined,
-                            accessToken: data.access_token,
-                            role: decoded.role,
-                            phone: decoded.phone,
-                        } as any; // Temporary cast to avoid strict type hell if versions mismatch, or better:
+                        // 2. Fetch user profile using the token
+                        try {
+                            const profile = await authService.getProfile(accessToken);
+
+                            // 3. Construct user session object
+                            return {
+                                id: profile.id,
+                                name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim() || profile.email,
+                                email: profile.email,
+                                accessToken: accessToken,
+                                role: profile.role || "user", // Fallback role
+                                phone: profile.phone,
+                            };
+                        } catch (profileError) {
+                            console.error("Failed to fetch profile:", profileError);
+                            return null;
+                        }
                     }
                     return null;
                 } catch (error) {
@@ -57,14 +62,16 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id;
                 token.accessToken = user.accessToken;
                 token.role = user.role;
+                token.phone = user.phone;
             }
             return token;
         },
         async session({ session, token }) {
             if (session.user) {
-                session.user.id = token.id;
-                session.user.role = token.role;
-                session.accessToken = token.accessToken;
+                session.user.id = token.id as string;
+                session.user.role = token.role as string;
+                session.accessToken = token.accessToken as string;
+                session.user.phone = token.phone as string;
             }
             return session;
         }

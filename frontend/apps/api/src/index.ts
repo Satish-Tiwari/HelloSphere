@@ -178,7 +178,7 @@ function generateRandomActivity() {
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const randomTime = new Date(
     thirtyDaysAgo.getTime() +
-      Math.random() * (now.getTime() - thirtyDaysAgo.getTime())
+    Math.random() * (now.getTime() - thirtyDaysAgo.getTime())
   );
 
   return {

@@ -1,4 +1,4 @@
-const API_URL = "/backend";
+const API_URL = process.env.BACKEND_ENDPOINT || "http://localhost:5000/api/v1";
 
 export interface SignupDto {
     firstName: string;
@@ -24,6 +24,20 @@ export interface ResetPasswordDto {
     newPassword: string;
 }
 
+export interface UserProfile {
+    id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    role?: string;
+}
+
+export interface LoginResponse {
+    message: string;
+    access_token: string;
+}
+
 async function handleResponse(response: Response) {
     const data = await response.json();
     if (!response.ok) {
@@ -39,6 +53,19 @@ export const authService = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(credentials),
+        });
+        const res = await response.clone().json();
+        console.log("Login raw response:", res);
+        return handleResponse(response);
+    },
+
+    getProfile: async (accessToken: string) => {
+        const response = await fetch(`${API_URL}/user/profile`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            },
         });
         return handleResponse(response);
     },

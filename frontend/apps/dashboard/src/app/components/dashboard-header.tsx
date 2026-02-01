@@ -1,16 +1,14 @@
-import { cookies, headers } from "next/headers";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/utils/auth";
 import { Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { fetchApi } from "@/lib/fetch-api";
-
-interface User {
-  name: string;
-}
+import { UserNav } from "./user-nav";
 
 export async function DashboardHeader() {
-  const user = await fetchApi<User>("/api/users/user");
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-6">
@@ -24,7 +22,7 @@ export async function DashboardHeader() {
           />
         </div>
       </form>
-      <span className="text-sm">{user.name}</span>
+      {user && <UserNav user={user} />}
       <ThemeToggle />
       <Button variant="ghost" size="icon" className="relative">
         <Bell className="h-4 w-4" />
