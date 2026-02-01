@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AuthSkeleton() {
     return (
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+        <div className="max-w-md w-full bg-card rounded-lg shadow-lg p-8 border border-border">
             {/* Header Skeleton */}
             <div className="text-center space-y-6 mb-8">
                 <Skeleton className="h-9 w-3/4 mx-auto" />

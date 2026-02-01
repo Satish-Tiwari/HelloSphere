@@ -57,12 +57,12 @@ export default function LoginForm() {
     };
 
     return (
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+        <div className="max-w-md w-full bg-card rounded-lg shadow-lg p-8 border border-border">
             <div className="text-center space-y-6 mb-8">
-                <h2 className="text-3xl font-extrabold text-gray-900">
+                <h2 className="text-3xl font-extrabold text-card-foreground">
                     Welcome Back
                 </h2>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                     Please sign in to your account
                 </p>
             </div>
@@ -70,7 +70,7 @@ export default function LoginForm() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Email</label>
+                    <label className="text-sm font-medium text-muted-foreground">Email</label>
                     <Input
                         type="email"
                         placeholder="Enter your email"
@@ -83,7 +83,7 @@ export default function LoginForm() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Password</label>
+                    <label className="text-sm font-medium text-muted-foreground">Password</label>
                     <Input
                         type="password"
                         placeholder="Enter your password"
@@ -96,7 +96,7 @@ export default function LoginForm() {
                     <div className="flex justify-end">
                         <Link
                             href="/auth/forgot-password"
-                            className="text-sm text-indigo-600 hover:text-indigo-500"
+                            className="text-sm text-primary hover:underline"
                         >
                             Forgot password?
                         </Link>
@@ -105,7 +105,7 @@ export default function LoginForm() {
 
                 <Button
                     type="submit"
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                     disabled={loading}
                 >
                     {loading ? "Signing in..." : "Sign in"}
@@ -113,11 +113,11 @@ export default function LoginForm() {
             </form>
 
             <div className="mt-6 text-center text-sm">
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                     Don't have an account?{" "}
                     <Link
                         href="/auth/signup"
-                        className="font-medium text-indigo-600 hover:text-indigo-500"
+                        className="font-medium text-primary hover:underline"
                     >
                         Sign up
                     </Link>

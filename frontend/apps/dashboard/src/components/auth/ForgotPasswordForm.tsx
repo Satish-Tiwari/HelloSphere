@@ -52,30 +52,30 @@ export default function ForgotPasswordForm() {
     };
 
     return (
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+        <div className="max-w-md w-full bg-card rounded-lg shadow-lg p-8 border border-border">
             <div className="text-center space-y-6 mb-8">
-                <h2 className="text-3xl font-extrabold text-gray-900">
+                <h2 className="text-3xl font-extrabold text-card-foreground">
                     Forgot Password
                 </h2>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                     Enter your email to receive a reset OTP.
                 </p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {error && (
-                    <div className="bg-red-50 text-red-500 text-sm p-3 rounded-md">
+                    <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
                         {error}
                     </div>
                 )}
                 {successMessage && (
-                    <div className="bg-green-50 text-green-600 text-sm p-3 rounded-md">
+                    <div className="bg-green-500/10 text-green-600 text-sm p-3 rounded-md">
                         {successMessage}
                     </div>
                 )}
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Email</label>
+                    <label className="text-sm font-medium text-muted-foreground">Email</label>
                     <Input
                         type="email"
                         placeholder="user@example.com"
@@ -89,7 +89,7 @@ export default function ForgotPasswordForm() {
 
                 <Button
                     type="submit"
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                     disabled={mutation.isPending || !!successMessage}
                 >
                     {mutation.isPending ? "Sending..." : "Send OTP"}
@@ -97,11 +97,11 @@ export default function ForgotPasswordForm() {
             </form>
 
             <div className="mt-6 text-center text-sm">
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                     Remember your password?{" "}
                     <Link
                         href="/auth/login"
-                        className="font-medium text-indigo-600 hover:text-indigo-500"
+                        className="font-medium text-primary hover:underline"
                     >
                         Back to Login
                     </Link>

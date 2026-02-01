@@ -69,33 +69,33 @@ export default function ResetPasswordForm() {
 
     if (success) {
         return (
-            <div className="bg-green-50 p-6 rounded-lg text-center">
-                <h3 className="text-xl font-medium text-green-900">Password Reset Successful!</h3>
-                <p className="mt-2 text-green-700">Redirecting to login...</p>
+            <div className="bg-green-500/10 p-6 rounded-lg text-center">
+                <h3 className="text-xl font-medium text-green-900 dark:text-green-500">Password Reset Successful!</h3>
+                <p className="mt-2 text-green-700 dark:text-green-400">Redirecting to login...</p>
             </div>
         );
     }
 
     return (
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+        <div className="max-w-md w-full bg-card rounded-lg shadow-lg p-8 border border-border">
             <div className="text-center space-y-6 mb-8">
-                <h2 className="text-3xl font-extrabold text-gray-900">
+                <h2 className="text-3xl font-extrabold text-card-foreground">
                     Reset Password
                 </h2>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                     Enter the OTP sent to your email and your new password.
                 </p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {error && (
-                    <div className="bg-red-50 text-red-500 text-sm p-3 rounded-md">
+                    <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
                         {error}
                     </div>
                 )}
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Email</label>
+                    <label className="text-sm font-medium text-muted-foreground">Email</label>
                     <Input
                         type="email"
                         placeholder="user@example.com"
@@ -109,7 +109,7 @@ export default function ResetPasswordForm() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">OTP</label>
+                    <label className="text-sm font-medium text-muted-foreground">OTP</label>
                     <Input
                         type="text"
                         placeholder="1234"
@@ -123,7 +123,7 @@ export default function ResetPasswordForm() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">New Password</label>
+                    <label className="text-sm font-medium text-muted-foreground">New Password</label>
                     <Input
                         type="password"
                         placeholder="******"
@@ -136,7 +136,7 @@ export default function ResetPasswordForm() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Confirm New Password</label>
+                    <label className="text-sm font-medium text-muted-foreground">Confirm New Password</label>
                     <Input
                         type="password"
                         placeholder="******"
@@ -150,7 +150,7 @@ export default function ResetPasswordForm() {
 
                 <Button
                     type="submit"
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                     disabled={mutation.isPending}
                 >
                     {mutation.isPending ? "Resetting Password..." : "Reset Password"}
@@ -158,11 +158,11 @@ export default function ResetPasswordForm() {
             </form>
 
             <div className="mt-6 text-center text-sm">
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                     Back to{" "}
                     <Link
                         href="/auth/login"
-                        className="font-medium text-indigo-600 hover:text-indigo-500"
+                        className="font-medium text-primary hover:underline"
                     >
                         Login
                     </Link>

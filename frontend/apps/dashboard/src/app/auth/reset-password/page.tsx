@@ -4,7 +4,7 @@ import AuthSkeleton from "@/components/auth/AuthSkeleton";
 
 export default function ResetPasswordPage() {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-muted p-4">
             <Suspense fallback={<AuthSkeleton />}>
                 <ResetPasswordForm />
             </Suspense>
