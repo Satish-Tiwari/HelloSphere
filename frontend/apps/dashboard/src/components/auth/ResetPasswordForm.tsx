@@ -12,7 +12,7 @@ import { useResetPassword } from "@/hooks/useAuth";
 
 const resetPasswordSchema = z.object({
     email: z.string().email("Invalid email address"),
-    otp: z.string().length(4, "OTP must be exactly 4 digits"),
+    otp: z.string().length(6, "OTP must be exactly 6 digits"),
     newPassword: z.string().min(6, "Password must be at least 6 characters"),
     confirmNewPassword: z.string().min(6, "Confirm Password must be at least 6 characters"),
 }).refine((data) => data.newPassword === data.confirmNewPassword, {
@@ -64,7 +64,10 @@ export default function ResetPasswordForm() {
 
     const onSubmit = (data: ResetPasswordFormValues) => {
         setError(null);
-        mutation.mutate(data);
+        // Only send email, otp, and newPassword to backend
+        // confirmNewPassword is only for frontend validation
+        const { confirmNewPassword, ...resetData } = data;
+        mutation.mutate(resetData);
     };
 
     if (success) {
@@ -112,8 +115,8 @@ export default function ResetPasswordForm() {
                     <label className="text-sm font-medium text-muted-foreground">OTP</label>
                     <Input
                         type="text"
-                        placeholder="1234"
-                        maxLength={4}
+                        placeholder="123456"
+                        maxLength={6}
                         {...register("otp")}
                         className={errors.otp ? "border-red-500" : ""}
                     />

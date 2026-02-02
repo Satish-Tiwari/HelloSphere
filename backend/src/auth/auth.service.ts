@@ -191,22 +191,21 @@ export class AuthService {
   }
 
   //Logic to generate the reset OTP for forgotten password
-  async generatePasswordResetOTP(phone: string): Promise<void> {
-    if (!phone) throw new BadRequestException('No phone number provided');
+  async generatePasswordResetOTP(email: string): Promise<void> {
+    if (!email) throw new BadRequestException('No email provided');
 
-    // Validate phone number format
-    const phoneValidation = await this.smsService.validatePhoneNumber(phone);
-    if (!phoneValidation.isValid) {
-      throw new BadRequestException(phoneValidation.error);
+    // Validate email format
+    if (!this.validateEmail(email)) {
+      throw new BadRequestException('Invalid email format');
     }
 
     // Check if the user exists
     const user = await this.userModel.findOne({
-      phone: phoneValidation.formattedNumber,
+      email,
     });
     if (!user) {
       throw new BadRequestException(
-        'User with this phone number does not exist',
+        'User with this email does not exist',
       );
     }
 
@@ -238,18 +237,18 @@ export class AuthService {
       }
     }
 
-    // Generate a 4-digit OTP
-    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     try {
-      // Send OTP to user's phone first
-      await this.smsService.sendPasswordResetOTP(
-        phoneValidation.formattedNumber,
+      // Send OTP to user's email first
+      await this.mailService.sendVerificationOTP(
+        user.email,
         otp,
         user.firstName,
       );
 
-      // Only save OTP to database if SMS was sent successfully
+      // Only save OTP to database if email was sent successfully
       user.resetPasswordOTP = otp;
       user.resetPasswordOTPExpires = new Date(
         Date.now() + this.otpExpiryMinutes * 60 * 1000,
@@ -258,9 +257,9 @@ export class AuthService {
       user.lastOtpRequestTime = now;
 
       await user.save();
-    } catch (smsError) {
-      // If SMS sending fails, still save the OTP but log the error
-      console.error('Failed to send password reset SMS:', smsError.message);
+    } catch (mailError) {
+      // If email sending fails, still save the OTP but log the error
+      console.error('Failed to send password reset email:', mailError.message);
 
       // Save OTP anyway so user can potentially verify later
       user.resetPasswordOTP = otp;
@@ -274,7 +273,7 @@ export class AuthService {
 
       // Re-throw the error to be handled by the calling function
       throw new BadRequestException(
-        'Failed to send password reset SMS. Please try again.',
+        'Failed to send password reset email. Please try again.',
       );
     }
   }
@@ -485,25 +484,25 @@ export class AuthService {
 
   //Logic to reset password with OTP
   async resetPasswordWithOTP(
-    phone: string,
+    email: string,
     otp: string,
     newPassword: string,
   ): Promise<void> {
-    if (!phone || !otp || !newPassword) {
+    if (!email || !otp || !newPassword) {
       throw new BadRequestException(
-        'Phone number, OTP, and new password are required',
+        'Email, OTP, and new password are required',
       );
     }
 
-    // Validate phone number format
-    const phoneValidation = await this.smsService.validatePhoneNumber(phone);
-    if (!phoneValidation.isValid) {
-      throw new BadRequestException(phoneValidation.error);
+    // Validate email format
+    const emailValidation = await this.validateEmail(email);
+    if (!emailValidation) {
+      throw new BadRequestException('Invalid email format');
     }
 
     // Find user by phone and ensure OTP is valid and not expired
     const user = await this.userModel.findOne({
-      phone: phoneValidation.formattedNumber,
+      email,
       resetPasswordOTP: otp,
       resetPasswordOTPExpires: { $gt: new Date() }, // Ensure the OTP is not expired
     });

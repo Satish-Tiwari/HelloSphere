@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useSignup } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 // Enum for UserRole
 enum UserRole {
-    USER = 'USER',
+    USER = 'user',
 }
 
 const signupSchema = z.object({
@@ -46,8 +47,11 @@ export default function SignupForm() {
     });
 
     const mutation = useSignup({
-        onSuccess: () => {
-            router.push("/auth/login?signup=success");
+        onSuccess: (data: any) => {
+            toast.info("Verify your email address.");
+            setTimeout(() => {
+                router.push("/auth/verify-email");
+            }, 2000);
         },
         onError: (err: any) => {
             console.error(err);

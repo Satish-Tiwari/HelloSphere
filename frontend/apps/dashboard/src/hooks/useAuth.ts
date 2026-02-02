@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
-import { authService, SignupDto, ForgotPasswordDto, ResetPasswordDto, LoginDto } from "@/services/auth.service";
+import { authService, SignupDto, ForgotPasswordDto, ResetPasswordDto, LoginDto, VerifyEmailDto, ResendOTPDto } from "@/services/auth.service";
 
 export const useSignup = (options?: UseMutationOptions<any, any, SignupDto>) => {
     return useMutation({
@@ -12,7 +12,7 @@ export const useSignup = (options?: UseMutationOptions<any, any, SignupDto>) => 
 
 export const useForgotPassword = (options?: UseMutationOptions<any, any, ForgotPasswordDto>) => {
     return useMutation({
-        mutationFn: (data: ForgotPasswordDto) => authService.forgotPassword(data),
+        mutationFn: (data: ForgotPasswordDto) => authService.forgotPasswordEmail(data),
         ...options,
     });
 };
@@ -23,3 +23,17 @@ export const useResetPassword = (options?: UseMutationOptions<any, any, ResetPas
         ...options,
     });
 };
+
+export const useVerifyEmail = (options?: UseMutationOptions<any, any, VerifyEmailDto>) => {
+    return useMutation({
+        mutationFn: (data: VerifyEmailDto) => authService.verifyEmail(data),
+        ...options,
+    });
+}
+
+export const useResendOTP = (options?: UseMutationOptions<any, any, ResendOTPDto>) => {
+    return useMutation({
+        mutationFn: (data: ResendOTPDto) => authService.resendOTP(data),
+        ...options,
+    });
+}

@@ -56,25 +56,25 @@ export class AuthController {
   }
 
   // Endpoint to handle "Forgot Password" requests
-  // The user provides their phone number, and a reset OTP is generated and sent via SMS.
+  // The user provides their email address, and a reset OTP is generated and sent via email.
   @Post('forgot-password')
   async forgotPassword(
     @Body() forgotPasswordDto: ForgotPasswordDto,
   ): Promise<{ message: string }> {
-    await this.authService.generatePasswordResetOTP(forgotPasswordDto.phone);
+    await this.authService.generatePasswordResetOTP(forgotPasswordDto.email);
     return {
-      message: 'Password reset OTP sent to your phone number.',
+      message: 'Password reset OTP sent to your email.',
     };
   }
 
   // Endpoint to handle password reset using OTP
-  // The user provides the phone number, OTP, and new password.
+  // The user provides the email address, OTP, and new password.
   @Post('reset-password')
   async resetPasswordWithOTP(
     @Body() resetPasswordDto: ResetPasswordDto,
   ): Promise<{ message: string }> {
     await this.authService.resetPasswordWithOTP(
-      resetPasswordDto.phone,
+      resetPasswordDto.email,
       resetPasswordDto.otp,
       resetPasswordDto.newPassword,
     );

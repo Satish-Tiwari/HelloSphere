@@ -34,32 +34,32 @@ export class ResendOtpDto {
 
 export class ForgotPasswordDto {
   @ApiProperty({
-    example: '9876543210',
-    description: 'Phone number associated with the account',
+    example: 'user@example.com',
+    description: 'Registered email address',
   })
-  @IsString()
-  @IsNotEmpty({ message: 'Phone number is required' })
-  phone: string;
+  @IsEmail()
+  @IsNotEmpty({ message: 'Email is required' })
+  email: string;
 }
 
 export class ResetPasswordDto {
   @ApiProperty({
-    example: '9876543210',
-    description: 'Registered phone number',
+    example: 'user@example.com',
+    description: 'Registered email address',
   })
-  @IsString()
-  @IsNotEmpty({ message: 'Phone number is required' })
-  phone: string;
+  @IsEmail()
+  @IsNotEmpty({ message: 'Email is required' })
+  email: string;
 
   @ApiProperty({
-    example: '1234',
-    description: '4-digit OTP',
-    minLength: 4,
-    maxLength: 4,
+    example: '123456',
+    description: '6-digit OTP',
+    minLength: 6,
+    maxLength: 6,
   })
   @IsString({ message: 'OTP must be a string' })
   @IsNotEmpty({ message: 'OTP is required' })
-  @Length(4, 4, { message: 'OTP must be exactly 4 digits' })
+  @Length(6, 6, { message: 'OTP must be exactly 6 digits' })
   otp: string;
 
   @ApiProperty({

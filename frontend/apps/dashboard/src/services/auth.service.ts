@@ -24,6 +24,15 @@ export interface ResetPasswordDto {
     newPassword: string;
 }
 
+export interface VerifyEmailDto {
+    email: string;
+    otp: string;
+}
+
+export interface ResendOTPDto {
+    email: string;
+}
+
 export interface UserProfile {
     id: string;
     email: string;
@@ -79,7 +88,7 @@ export const authService = {
         return handleResponse(response);
     },
 
-    forgotPassword: async (data: ForgotPasswordDto) => {
+    forgotPasswordEmail: async (data: ForgotPasswordDto) => {
         const response = await fetch(`${API_URL}/auth/forgot-password`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -96,4 +105,22 @@ export const authService = {
         });
         return handleResponse(response);
     },
+
+    verifyEmail: async (data: VerifyEmailDto) => {
+        const response = await fetch(`${API_URL}/auth/verify-email`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        });
+        return handleResponse(response);
+    },
+
+    resendOTP: async (data: ResendOTPDto) => {
+        const response = await fetch(`${API_URL}/auth/resend-verification-otp`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        });
+        return handleResponse(response);
+    }
 };
