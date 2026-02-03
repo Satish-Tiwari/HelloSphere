@@ -1,13 +1,14 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/utils/auth";
+"use client";
+
+import { useSession } from "next-auth/react";
 import { Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserNav } from "./user-nav";
 
-export async function DashboardHeader() {
-  const session = await getServerSession(authOptions);
+export function DashboardHeader() {
+  const { data: session } = useSession();
   const user = session?.user;
 
   return (

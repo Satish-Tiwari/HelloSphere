@@ -33,15 +33,15 @@ export function DashboardNav() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <a href="#" className="flex items-center gap-2">
+              <a href="/users" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                <span>Customers</span>
+                <span>Users</span>
               </a>
             </SidebarMenuButton>
             <SidebarMenuSub>
               <SidebarMenuSubItem>
                 <SidebarMenuSubButton asChild>
-                  <a href="#">Active Users</a>
+                  <a href="/users">All Users</a>
                 </SidebarMenuSubButton>
               </SidebarMenuSubItem>
               <SidebarMenuSubItem>
