@@ -1,0 +1,314 @@
+===========================================================
+WHATSAPP-LIKE CHAT SYSTEM
+SYSTEM DESIGN & ARCHITECTURE DOCUMENT
+===========================================================
+
+TECH OPTIONS:
+1) Apache Cassandra + Node.js
+2) Custom Node.js Messaging System
+
+===========================================================
+1. FUNCTIONAL REQUIREMENTS
+===========================================================
+
+Core Features:
+- One-to-one messaging
+- Group chats
+- Message ordering
+- Message delivery status (sent, delivered, read)
+- Read receipts
+- Typing indicators
+- Media messages (image, audio, video)
+- Offline message sync
+- Push notifications
+
+Non-Functional Requirements:
+- Low latency (<200 ms)
+- High availability (99.9%+)
+- Horizontal scalability
+- Fault tolerance
+- Eventual consistency acceptable
+- Cost efficiency at scale
+
+===========================================================
+2. HIGH LEVEL ARCHITECTURE (HLD)
+===========================================================
+
+Client (Mobile / Web)
+        |
+API Gateway
+        |
+Authentication Service
+        |
+Message Service
+        |
+Message Queue (Kafka / RabbitMQ)
+        |
+Message Persistence Layer
+        |
+Cassandra Cluster
+
+Supporting Services:
+- WebSocket Service (real-time delivery)
+- Redis (presence, typing, cache)
+- Object Storage (media)
+
+===========================================================
+3. TECHNOLOGY STACK
+===========================================================
+
+Backend:
+- Node.js (Express / NestJS)
+- WebSockets (Socket.IO / ws)
+
+Messaging:
+- Kafka / RabbitMQ
+
+Databases:
+- Cassandra (messages)
+- Redis (ephemeral data)
+- PostgreSQL (metadata if needed)
+
+Storage:
+- S3 / GCS (media files)
+
+===========================================================
+OPTION A: CASSANDRA-BASED CHAT SYSTEM
+===========================================================
+
+===========================================================
+4. WHY CASSANDRA
+===========================================================
+
+- Optimized for write-heavy workloads
+- Linear horizontal scaling
+- High availability
+- Append-only data model
+- Time-series friendly
+- No single point of failure
+
+===========================================================
+5. DATA MODELING PRINCIPLES
+===========================================================
+
+- Query-based schema design
+- No joins
+- Partition by conversation_id
+- Cluster by message timestamp
+- Avoid hot partitions
+
+===========================================================
+6. CASSANDRA TABLES
+===========================================================
+
+Table: messages_by_conversation
+
+Columns:
+- conversation_id (UUID)
+- message_ts (TIMESTAMP)
+- message_id (UUID)
+- sender_id (UUID)
+- content (TEXT)
+- message_type (TEXT)
+- status (TEXT)
+
+Primary Key:
+(conversation_id, message_ts, message_id)
+
+Clustering Order:
+message_ts DESC
+
+-----------------------------------------------------------
+
+Table: conversations_by_user
+
+Columns:
+- user_id (UUID)
+- conversation_id (UUID)
+- last_message_ts (TIMESTAMP)
+- unread_count (INT)
+
+Primary Key:
+(user_id, last_message_ts, conversation_id)
+
+-----------------------------------------------------------
+
+Table: message_receipts
+
+Columns:
+- message_id (UUID)
+- user_id (UUID)
+- status (TEXT)
+- updated_at (TIMESTAMP)
+
+Primary Key:
+(message_id, user_id)
+
+===========================================================
+7. MESSAGE FLOW (SEND MESSAGE)
+===========================================================
+
+1. Client sends message request
+2. API Gateway validates auth
+3. Message Service publishes to Kafka
+4. WebSocket server pushes message to online users
+5. Message written to Cassandra
+6. Acknowledgment returned to sender
+
+===========================================================
+8. MESSAGE FLOW (RECEIVE MESSAGE)
+===========================================================
+
+- Online user receives message via WebSocket
+- Offline user message stored in Cassandra
+- Push notification sent
+- Messages synced on reconnect
+
+===========================================================
+9. WEBSOCKET SERVICE (NODE.JS)
+===========================================================
+
+Responsibilities:
+- Real-time message delivery
+- Typing indicators
+- Read receipts
+- Presence updates
+
+Scaling:
+- Multiple WebSocket instances
+- Redis Pub/Sub for fan-out
+- Sticky sessions (optional)
+
+===========================================================
+10. REDIS USAGE
+===========================================================
+
+- User online presence
+- Typing indicators
+- Rate limiting
+- Unread message count cache
+- Temporary message buffering
+
+===========================================================
+11. MEDIA HANDLING
+===========================================================
+
+- Client uploads media to object storage
+- Backend generates signed URLs
+- Only metadata stored in Cassandra
+- CDN used for fast delivery
+
+===========================================================
+12. FAILURE HANDLING
+===========================================================
+
+Cassandra Failure:
+- Replication factor = 3
+- Quorum reads/writes
+- Automatic failover
+
+WebSocket Failure:
+- Client reconnects
+- Message replay using last synced timestamp
+
+===========================================================
+OPTION B: CUSTOM NODE.JS CHAT SYSTEM
+===========================================================
+
+===========================================================
+13. ARCHITECTURE
+===========================================================
+
+Client
+ |
+WebSocket Gateway
+ |
+Message Router
+ |
+Database (PostgreSQL / MongoDB)
+ |
+Redis
+
+===========================================================
+14. MESSAGE STORAGE (POSTGRESQL EXAMPLE)
+===========================================================
+
+Table: messages
+
+Columns:
+- id (BIGSERIAL)
+- conversation_id (UUID)
+- sender_id (UUID)
+- content (TEXT)
+- created_at (TIMESTAMP)
+
+Scaling:
+- Table partitioning
+- Read replicas
+- Sharding at high scale
+
+===========================================================
+15. PROS AND CONS
+===========================================================
+
+Custom Node.js System:
+Pros:
+- Simple to build
+- Faster MVP
+- Lower initial cost
+
+Cons:
+- Harder to scale
+- Database bottleneck
+- Manual optimizations required
+
+Cassandra System:
+Pros:
+- Massive scalability
+- High availability
+- Write optimized
+
+Cons:
+- Operational complexity
+- Learning curve
+
+===========================================================
+16. SECURITY
+===========================================================
+
+- JWT authentication
+- TLS everywhere
+- Message access control
+- Signed media URLs
+
+===========================================================
+17. PERFORMANCE TARGETS
+===========================================================
+
+- Message latency: < 200 ms
+- Write throughput: 100k messages/sec
+- Availability: 99.9%
+- Fan-out delay: < 50 ms
+
+===========================================================
+18. RECOMMENDED IMPLEMENTATION PATH
+===========================================================
+
+Phase 1:
+- Node.js
+- PostgreSQL
+- Redis
+- WebSockets
+
+Phase 2:
+- Introduce Kafka
+- Migrate messages to Cassandra
+
+Phase 3:
+- Multi-region Cassandra
+- Geo-routing
+- Advanced monitoring
+
+===========================================================
+END OF DOCUMENT
+===========================================================
